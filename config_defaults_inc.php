@@ -1033,7 +1033,7 @@
 	 * a datepicker which populates the text field.
 	 * @global int $g_use_date_picker_javascript
 	 */
-		$g_use_date_picker_javascript = OFF;
+		$g_use_date_picker_javascript = ON;
      // fin iljojoa
 	/**
 	 * date format strings defaults to ISO 8601 formatting

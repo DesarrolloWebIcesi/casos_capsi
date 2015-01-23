@@ -192,6 +192,7 @@ function gpc_isset_custom_field( $p_var_name, $p_custom_field_type ) {
 										gpc_get_int( $t_field_name . '_month', 0 ) != 0 &&
 										gpc_isset( $t_field_name . '_year' ) &&
 										gpc_get_int( $t_field_name . '_year', 0 ) != 0 ;
+							}
 		case CUSTOM_FIELD_TYPE_STRING:
 		case CUSTOM_FIELD_TYPE_NUMERIC:
 		case CUSTOM_FIELD_TYPE_FLOAT:
