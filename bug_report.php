@@ -243,7 +243,19 @@
 	html_page_top1();
 
 	if ( !$f_report_stay ) {
-		html_meta_redirect( 'view_all_bug_page.php' );
+	/**
+		 * cdcriollo - Christian David Criollo
+		 * 2015-01-27
+		 * Agregado para que los informadores vean su vista, después de reportar un problema
+		 */
+		
+		if ( current_user_get_access_level() > REPORTER)
+		{
+		  html_meta_redirect( 'view_all_bug_page.php' );
+		}
+		else {
+			html_meta_redirect( 'my_view_page.php' );
+		}
 	}
 
 	html_page_top2();
