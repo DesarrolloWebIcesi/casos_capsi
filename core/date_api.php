@@ -211,9 +211,15 @@ function print_date_selection_set($p_name, $p_format, $p_date = 0, $p_default_di
 	// if( $p_date != 0 ) {
 	if (ON == config_get ( 'use_date_picker_javascript' ) && "/return_dynamic_filters.php" != $_SERVER ["SCRIPT_NAME"]) {
 		$p_date = is_numeric ( $p_date ) ? $p_date : time ();
-		$t_date = preg_split ( '/-/', date ( 'Y-m-d', $p_date ), - 1, PREG_SPLIT_NO_EMPTY );
+		//$t_date = preg_split ( '/-/', date ( 'Y-m-d', $p_date ), - 1, PREG_SPLIT_NO_EMPTY );
+		/**
+		 * cdcriollo - Christian David Criollo
+		 * 2015-01-30
+		 * Se cambio el formato de fecha a (d-M-Y) del calendario y se adiciono el atributo readonly al campo de texto
+		 */
+		$t_date = preg_split ( '/-/', date ( 'd-M-Y', $p_date ), - 1, PREG_SPLIT_NO_EMPTY );
 		$t_date_to_display = $t_date ? $t_date [0] . "-" . $t_date [1] . "-" . $t_date [2] : '';
-		print "<input " . helper_get_tab_index () . " type=\"text\" size=\"14\" id=\"$p_name\" name=\"$p_name\" size=\"20\" maxlength=\"12\" value=\"" . $t_date_to_display . "\" />";
+		print "<input " . helper_get_tab_index () . " type=\"text\" size=\"14\" id=\"$p_name\" name=\"$p_name\" size=\"20\" readonly maxlength=\"12\" value=\"" . $t_date_to_display . "\" />";
 		date_print_calendar ( "trigger" . $p_name );
 		date_finish_calendar ( $p_name, "trigger" . $p_name, false );
 	} else {

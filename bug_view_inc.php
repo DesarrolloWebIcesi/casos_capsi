@@ -129,10 +129,28 @@
 
 	$tpl_show_date_submitted = in_array( 'date_submitted', $t_fields );
 	$tpl_date_submitted = $tpl_show_date_submitted ? date( config_get( 'normal_date_format' ), $tpl_bug->date_submitted ) : '';
-
+    
+	/**
+	 * cdcriollo - Christian David Criollo
+	 * 2015-01-29
+	 * Agregado para que los meses aparezcan en idioma español
+	 */
+	$mes_ingles = array('Jan', 'Apr', 'Aug', 'Dec');
+	$mes_espanol = array('Ene', 'Abr', 'Ago', 'Dic');
+	$tpl_date_submitted = str_replace($mes_ingles, $mes_espanol, $tpl_date_submitted);
+	
 	$tpl_show_last_updated = in_array( 'last_updated', $t_fields );
 	$tpl_last_updated = $tpl_show_last_updated ? date( config_get( 'normal_date_format' ), $tpl_bug->last_updated ) : '';
-
+    
+	/**
+	 * cdcriollo - Christian David Criollo
+	 * 2015-01-29
+	 * Agregado para que los meses aparezcan en idioma español
+	 */
+	$mes_ingles = array('Jan', 'Apr', 'Aug', 'Dec');
+	$mes_espanol = array('Ene', 'Abr', 'Ago', 'Dic');
+	$tpl_last_updated = str_replace($mes_ingles, $mes_espanol, $tpl_last_updated);
+	
 	$tpl_show_tags = in_array( 'tags', $t_fields ) && access_has_global_level( config_get( 'tag_view_threshold' ) );
 
 	$tpl_bug_overdue = bug_is_overdue( $f_bug_id );

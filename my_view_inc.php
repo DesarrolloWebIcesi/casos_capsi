@@ -300,6 +300,16 @@ echo "($v_start - $v_end / $t_bug_count)";
 
 	$t_summary = string_display_line_links( $t_bug->summary );
 	$t_last_updated = date( config_get( 'normal_date_format' ), $t_bug->last_updated );
+	
+	/**
+	 * cdcriollo - Christian David Criollo
+	 * 2015-01-29
+	 * Agregado para que los meses aparezcan en idioma español
+	 */
+	
+	$mes_ingles = array('Jan', 'Apr', 'Aug', 'Dec');
+	$mes_espanol = array('Ene', 'Abr', 'Ago', 'Dic');
+	$t_last_updated = str_replace($mes_ingles, $mes_espanol, $t_last_updated);
 
 	# choose color based on status
 	$status_color = get_status_color( $t_bug->status, auth_get_current_user_id(), $t_bug->project_id );
