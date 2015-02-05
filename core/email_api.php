@@ -459,7 +459,11 @@ function email_signup( $p_user_id, $p_password, $p_confirm_hash, $p_admin_name =
 	# Send signup email regardless of mail notification pref
 	# or else users won't be able to sign up
 	if( !is_blank( $t_email ) ) {
-		email_store( $t_email, $t_subject, $t_message );
+     // rjaramillo 2011-12-21
+     // Modificado para permitir el envío de correos en formato HTML
+     // email_store( $t_email, $t_subject, $t_message );
+    $t_params = array('admin_name' => $p_admin_name, 'user_id' => $p_user_id, 'confirm_hash' => $p_confirm_hash);
+    email_store( 'email_notification_signup', $t_email, $t_subject, $t_message, null, $t_params );
 		log_event( LOG_EMAIL, sprintf( 'Signup Email = %s, Hash = %s, User = @U%d', $t_email, $p_confirm_hash, $p_user_id ) );
 
 		if( OFF == config_get( 'email_send_using_cronjob' ) ) {
@@ -495,10 +499,14 @@ function email_send_confirm_hash_url( $p_user_id, $p_confirm_hash ) {
 	# Send password reset regardless of mail notification prefs
 	# or else users won't be able to receive their reset pws
 	if( !is_blank( $t_email ) ) {
-		email_store( $t_email, $t_subject, $t_message );
-		log_event( LOG_EMAIL, sprintf( 'Password reset for user @U%d sent to %s', $p_user_id, $t_email ) );
-
-		if( OFF == config_get( 'email_send_using_cronjob' ) ) {
+	// rjaramillo 2011-12-21
+   // Modificado para permitir el envío de correos en formato HTML
+   // email_store( $t_email, $t_subject, $t_message );
+    $t_params = array('user_id' => $p_user_id, 'confirm_hash' => $p_confirm_hash);
+    email_store('email_notification_forgotten_password', $t_email, $t_subject, $t_message, null, $t_params );	
+      log_event( LOG_EMAIL, sprintf( 'Password reset for user @U%d sent to %s', $p_user_id, $t_email ) );
+		
+    if( OFF == config_get( 'email_send_using_cronjob' ) ) {
 			email_send_all();
 		}
 	}
@@ -527,7 +535,10 @@ function email_notify_new_account( $p_username, $p_email ) {
 		$t_message = lang_get( 'new_account_signup_msg' ) . "\n\n" . lang_get( 'new_account_username' ) . ' ' . $p_username . "\n" . lang_get( 'new_account_email' ) . ' ' . $p_email . "\n" . lang_get( 'new_account_IP' ) . ' ' . $_SERVER["REMOTE_ADDR"] . "\n" . $g_path . "\n\n" . lang_get( 'new_account_do_not_reply' );
 
 		if( !is_blank( $t_recipient_email ) ) {
-			email_store( $t_recipient_email, $t_subject, $t_message );
+     // rjaramillo 2011-12-21
+     // Modificado para permitir el envío de correos en formato HTML
+     //	email_store( $t_recipient_email, $t_subject, $t_message );
+      email_store( 'email_notification_new_account', $t_recipient_email, $t_subject, $t_message );
 			log_event( LOG_EMAIL, sprintf( 'New Account Notify for email = \'%s\'', $t_recipient_email ) );
 
 			if( OFF == config_get( 'email_send_using_cronjob' ) ) {
@@ -552,26 +563,7 @@ function email_notify_new_account( $p_username, $p_email ) {
  * @param array $p_extra_user_ids_to_email
  * @return bool
  */
-function email_generic( $p_bug_id, $p_notify_type, $p_message_id = null, array $p_header_optional_params = null, array $p_extra_user_ids_to_email = array() ) {
-	# @todo yarick123: email_collect_recipients(...) will be completely rewritten to provide additional information such as language, user access,..
-	# @todo yarick123:sort recipients list by language to reduce switches between different languages
-	$t_recipients = email_collect_recipients( $p_bug_id, $p_notify_type, $p_extra_user_ids_to_email );
-	return email_generic_to_recipients( $p_bug_id, $p_notify_type, $t_recipients, $p_message_id, $p_header_optional_params, $p_extra_user_ids_to_email );
-}
-
-/**
- * send a generic email
- * $p_notify_type: use check who she get notified of such event.
- * $p_message_id: message id to be translated and included at the top of the email message.
- * Return false if it were problems sending email * @param string
- * @param int $p_bug_id
- * @param string $p_notify_type
- * @param int $p_message_id
- * @param array $p_header_optional_params = null
- * @param array $p_extra_user_ids_to_email
- * @return bool
- */
-function email_generic_to_recipients( $p_bug_id, $p_notify_type, array $p_recipients, $p_message_id = null, $p_header_optional_params = null ) {
+function email_generic( $p_bug_id, $p_notify_type, $p_message_id = null, $p_header_optional_params = null, $p_extra_user_ids_to_email = array() ) {
 	$t_ok = true;
 
 	if( ON === config_get( 'enable_email_notification' ) ) {
@@ -579,11 +571,15 @@ function email_generic_to_recipients( $p_bug_id, $p_notify_type, array $p_recipi
 
 		bugnote_get_all_bugnotes( $p_bug_id );
 
+		# @todo yarick123: email_collect_recipients(...) will be completely rewritten to provide additional information such as language, user access,..
+		# @todo yarick123:sort recipients list by language to reduce switches between different languages
+		$t_recipients = email_collect_recipients( $p_bug_id, $p_notify_type, $p_extra_user_ids_to_email );
+
 		$t_project_id = bug_get_field( $p_bug_id, 'project_id' );
 
-		if( is_array( $p_recipients ) ) {
+		if( is_array( $t_recipients ) ) {
 			# send email to every recipient
-			foreach( $p_recipients as $t_user_id => $t_user_email ) {
+			foreach( $t_recipients as $t_user_id => $t_user_email ) {
 				log_event( LOG_EMAIL, sprintf( "Issue = #%d, Type = %s, Msg = '%s', User = @U%d, Email = '%s'.", $p_bug_id, $p_notify_type, $p_message_id, $t_user_id, $t_user_email ) );
 
 				# load (push) user language here as build_visible_bug_data assumes current language
@@ -638,14 +634,7 @@ function email_relationship_added( $p_bug_id, $p_related_bug_id, $p_rel_type ) {
 	if( !isset( $g_relationships[$p_rel_type] ) ) {
 		trigger_error( ERROR_RELATIONSHIP_NOT_FOUND, ERROR );
 	}
-
-	$t_recipients = email_collect_recipients( $p_bug_id, 'relation' );
-
-	# Recipient has to have access to both bugs to get the notification.
-	$t_recipients = email_filter_recipients_for_bug( $p_bug_id, $t_recipients );
-	$t_recipients = email_filter_recipients_for_bug( $p_related_bug_id, $t_recipients );
-
-	email_generic_to_recipients( $p_bug_id, 'relation', $t_recipients, $g_relationships[$p_rel_type]['#notify_added'], $t_opt );
+	email_generic( $p_bug_id, 'relation', $g_relationships[$p_rel_type]['#notify_added'], $t_opt );
 }
 
 /**
@@ -664,34 +653,7 @@ function email_relationship_deleted( $p_bug_id, $p_related_bug_id, $p_rel_type )
 	if( !isset( $g_relationships[$p_rel_type] ) ) {
 		trigger_error( ERROR_RELATIONSHIP_NOT_FOUND, ERROR );
 	}
-
-	$t_recipients = email_collect_recipients( $p_bug_id, 'relation' );
-
-	# Recipient has to have access to both bugs to get the notification.
-	$t_recipients = email_filter_recipients_for_bug( $p_bug_id, $t_recipients );
-	$t_recipients = email_filter_recipients_for_bug( $p_related_bug_id, $t_recipients );
-
-	email_generic_to_recipients( $p_bug_id, 'relation', $t_recipients, $g_relationships[$p_rel_type]['#notify_deleted'], $t_opt );
-}
-
-/**
- * Filter recipients to remove ones that don't have access to the specified bug.
- *
- * @param integer $p_bug_id       The bug id
- * @param array   $p_recipients   The recipients array (key: id, value: email)
- * @return array The filtered list of recipients in same format
- * @access private
- */
-function email_filter_recipients_for_bug( $p_bug_id, array $p_recipients ) {
-	$t_authorized_recipients = array();
-
-	foreach( $p_recipients as $t_recipient_id => $t_recipient_email ) {
-		if( access_has_bug_level( VIEWER, $p_bug_id, $t_recipient_id ) ) {
-			$t_authorized_recipients[$t_recipient_id] = $t_recipient_email;
-		}
-	}
-
-	return $t_authorized_recipients;
+	email_generic( $p_bug_id, 'relation', $g_relationships[$p_rel_type]['#notify_deleted'], $t_opt );
 }
 
 /**
@@ -842,7 +804,10 @@ function email_bug_deleted( $p_bug_id ) {
  * @param array $p_headers
  * @return int e-mail queue id, or NULL if e-mail was not stored
  */
-function email_store( $p_recipient, $p_subject, $p_message, $p_headers = null ) {
+// rjaramillo 2011-12-21
+// Modificado para permitir el envío de correos en formato HTML
+//function email_store( $p_recipient, $p_subject, $p_message, $p_headers = null ) {
+function email_store( $p_message_id, $p_recipient, $p_subject, $p_message, $p_headers = null, $p_params = null ) {
 	$t_recipient = trim( $p_recipient );
 	$t_subject = string_email( trim( $p_subject ) );
 	$t_message = string_email_links( trim( $p_message ) );
@@ -877,6 +842,10 @@ function email_store( $p_recipient, $p_subject, $p_message, $p_headers = null ) 
 		}
 	}
 	$t_email_data->metadata['hostname'] = $t_hostname;
+
+  // rjaramillo 2011-12-21
+  // Agregado para permitir el envío de correos en formato HTML
+  $t_email_data = event_signal('EVENT_NOTIFY_EMAIL', $t_email_data, array( 'message_id' => $p_message_id, 'params' => $p_params,));
 
 	$t_email_id = email_queue_add( $t_email_data );
 
@@ -1007,7 +976,11 @@ function email_send( $p_email_data ) {
 			break;
 	}
 
-	$mail->IsHTML( false );              # set email format to plain text
+// rjaramillo 2011-12-21
+// Modificado para permitir el envío de correos en formato HTML
+//  $mail->IsHTML( false );              # set email format to plain text
+//  $mail->IsHTML ( isset( $t_email_data->metadata['Content-Type'] ) && stripos( $t_email_data->metadata['Content-Type'], "text/html" ) !== false ) ;              # set email format to plain text
+  $mail->IsHTML( true );
 	$mail->WordWrap = 80;              # set word wrap to 50 characters
 	$mail->Priority = $t_email_data->metadata['priority'];  # Urgent = 1, Not Urgent = 5, Disable = 0
 	$mail->CharSet = $t_email_data->metadata['charset'];
@@ -1203,9 +1176,15 @@ function email_bug_reminder( $p_recipients, $p_bug_id, $p_message ) {
 		$t_header = "\n" . lang_get( 'on_date' ) . " $t_date, $t_sender $t_sender_email " . lang_get( 'sent_you_this_reminder_about' ) . ": \n\n";
 		$t_contents = $t_header . string_get_bug_view_url_with_fqdn( $p_bug_id, $t_recipient ) . " \n\n$p_message";
 
+    // rjaramillo 2011-12-21
+    // Agregado para permitir el envío de correos en formato HTML
+    $t_params = array( 'message' => $p_message, 'bug_id' => $p_bug_id, 'recipient' => $t_recipient, 'sender' => $t_sender, 'sender_email' => $t_sender_email );
 		if( ON == config_get( 'enable_email_notification' ) ) {
-			$t_id = email_store( $t_email, $t_subject, $t_contents );
-			if( $t_id !== null ) {
+	     // $t_id = email_store( $t_email, $t_subject, $t_contents );
+		// rjaramillo 2011-12-21
+       // Modificado para permitir el envío de correos en formato HTML
+      $t_id = email_store( 'email_bug_reminder', $t_email, $t_subject, $t_contents, null, $t_params );	
+        if( $t_id !== null ) {
 				$result[] = $t_recipient;
 			}
 			log_event( LOG_EMAIL, "queued reminder email #$t_id for U$t_recipient" );
@@ -1241,21 +1220,65 @@ function email_bug_info_to_one_user( $p_visible_bug_data, $p_message_id, $p_proj
 	}
 
 	# build subject
-	$t_subject = email_build_subject($p_visible_bug_data['email_bug']);
+	// $t_subject = email_build_subject($p_visible_bug_data['email_bug']);
+    // rjaramillo 2011-06-02
+    // Se agrega - '.  strtoupper(get_enum_element( 'status', $p_visible_bug_data['email_status'])).' para desplegar en el asunto del mensaje, el estado del caso
+	$t_subject = '[' . $p_visible_bug_data['email_project'] . ' ' . bug_format_id( $p_visible_bug_data['email_bug'] ) . ' - '.  strtoupper(get_enum_element( 'status', $p_visible_bug_data['email_status'])).']: ' . $p_visible_bug_data['email_summary'];
+     # build message
 
-	# build message
+	 // rjaramillo 2012-06-28
+  // Se agrega para enviar correo con formato HTML
+  $t_message = "
+  <style type='text/css'>
+    body{
+      font-family: verdana, arial, helvetica;
+      font-size: 13px;
+    }
+  </style>
+  <body>
+    <table cellspacing='0' border='0' width='100%'>
+  ";
 
-	$t_message = lang_get_defaulted( $p_message_id, null );
-
-	if( is_array( $p_header_optional_params ) ) {
-		$t_message = vsprintf( $t_message, $p_header_optional_params );
+//	$t_message .= lang_get_defaulted( $p_message_id, null );
+  if( is_array( $p_header_optional_params ) ) {
+		// $t_message = vsprintf( $t_message, $p_header_optional_params );
 	}
 
 	if(( $t_message !== null ) && ( !is_blank( $t_message ) ) ) {
-		$t_message .= " \n";
+		// $t_message .= " \n";
 	}
 
-	$t_message .= email_format_bug_message( $p_visible_bug_data );
+	$t_message .= email_format_bug_message( $p_visible_bug_data, $p_message_id );
+
+  //rjaramillo 2011-06-01
+  // Agregando la firma al mensaje
+//  $t_message .= "Atentamente, \n\nServicios y Recursos de Información \nsoporte-syri@listas.icesi.edu.co";
+  $t_message .= "<tr><td>&nbsp;</td></tr><tr><td>Atentamente, <br/><br/>";
+  $t_message .= "<img src='http://www.icesi.edu.co/templates/icesi/images/logo_icesi.png'><br/>";
+  switch($p_project_id)
+  {
+    case "15":
+      $t_message .= "<a href='http://www.icesi.edu.co/servicios_apoyo/'>Planta Física, Servicios Generales y Compras</a><br/>";
+      break;
+    case "16":
+      $t_message .= "<a href='http://www.icesi.edu.co/servicios_apoyo/'>Programa de Gestión en Salud, Seguridad y Ambiente</a><br/>";
+      break;
+    default:
+      $t_message .= "<a href='http://www.icesi.edu.co/capsi/'>Consultorio de Atención Psicosocial </a><br/>";
+  }
+  $t_message .= "<a href='http://www.icesi.edu.co/'>Universidad Icesi</a><br/>";
+  switch($p_project_id)
+  {
+    case "15":
+      $t_message .= "pfsgyc@listas.icesi.edu.co";
+      break;
+    case "16":
+      $t_message .= "pgssa@listas.icesi.edu.co";
+      break;
+    default:
+      $t_message .= "capsi@correo.icesi.edu.co";
+  }
+  $t_message .= "</td></tr>";
 
 	# build headers
 	$t_bug_id = $p_visible_bug_data['email_bug'];
@@ -1269,9 +1292,15 @@ function email_bug_info_to_one_user( $p_visible_bug_data, $p_message_id, $p_proj
 		$t_mail_headers['In-Reply-To'] = $t_message_md5;
 	}
 
+  // rjaramillo 2012-01-04
+  // Se agrega para cerrar el cuerpo HTML del mensaje
+  $t_message.= "</body>";
+  
 	# send mail
-	$t_ok = email_store( $t_user_email, $t_subject, $t_message, $t_mail_headers );
-
+   // rjaramillo 2011-12-21
+   // Modificado para permitir el envío de correos en formato HTML
+   // $t_ok = email_store( $t_user_email, $t_subject, $t_message, $t_mail_headers );
+  $t_ok = email_store( $p_message_id, $t_user_email, $t_subject, $t_message, $t_mail_headers, array_merge($p_visible_bug_data, array('header_optional_params' => $p_header_optional_params)));
 	return $t_ok;
 }
 
@@ -1280,7 +1309,7 @@ function email_bug_info_to_one_user( $p_visible_bug_data, $p_message_id, $p_proj
  * @param array $p_visible_bug_data
  * @return string
  */
-function email_format_bug_message( $p_visible_bug_data ) {
+function email_format_bug_message( $p_visible_bug_data, $p_message_id = null ) {
 	$t_normal_date_format = config_get( 'normal_date_format' );
 	$t_complete_date_format = config_get( 'complete_date_format' );
 
@@ -1298,14 +1327,79 @@ function email_format_bug_message( $p_visible_bug_data ) {
 	$p_visible_bug_data['email_priority'] = get_enum_element( 'priority', $p_visible_bug_data['email_priority'] );
 	$p_visible_bug_data['email_reproducibility'] = get_enum_element( 'reproducibility', $p_visible_bug_data['email_reproducibility'] );
 
-	$t_message = $t_email_separator1 . " \n";
+  $t_message = "";
+
+   // rjaramillo 2011-06-02
+   // Quitando el separador
+   // $t_message = $t_email_separator1 . " \n";
 
 	if( isset( $p_visible_bug_data['email_bug_view_url'] ) ) {
-		$t_message .= $p_visible_bug_data['email_bug_view_url'] . " \n";
-		$t_message .= $t_email_separator1 . " \n";
+		//$t_message .= $p_visible_bug_data['email_bug_view_url'] . " \n";
+		//$t_message .= $t_email_separator1 . " \n";
 	}
+   
+   //rjaramillo 2012-04-11
+  // Se agrega mensaje personalizado según el tipo de notificación
+  switch($p_message_id)
+  {
+    case "email_notification_title_for_status_bug_asigned":
+      $t_message .= "
+      <tr bgcolor='#0061AA'><td><center><img src='http://www.icesi.edu.co/comun/sgs_cabezote.png'></center></td></tr>
+      <tr><td bgcolor='#0061AA'><span style='color:#FFF; font-size:16px; font-family:Verdana, Helvetica, Arial;'><b>Notificación de Caso asignado</b></span></td></tr>";
+      break;
+    case "email_notification_title_for_action_bugnote_submitted":
+      $t_message .= "<tr><td><center><img src='http://www.icesi.edu.co/comun/nota_adicionada.jpg'></center></td></tr>";
+      $t_message .= "<tr><td><p>Se ha adicionado una nueva nota en el caso número <a href='".$p_visible_bug_data['email_bug_view_url']."'>".$p_visible_bug_data['email_bug']."</a> ";
+      $t_message .= "registrado por usted. Abajo encontrará el texto, hora y fecha de la nueva nota. Por favor revísela y en caso de que se requiera una respuesta ";
+      $t_message .= "de su parte, puede enviarla respondiendo este correo electrónico o directamente desde el Sistema de Gestión de Solicitudes ingresando a ";
+      $t_message .= "través del siguiente enlace: <a href='".$p_visible_bug_data['email_bug_view_url']."'>".$p_visible_bug_data['email_bug']."</a></p>";
+      //$t_message .= "<p>Si necesita ayuda puede ver el video tutorial de como adicionar notas a los casos en el SGS Icesi.</p>";
+      $t_message .= "</td></tr>";
+      if(is_array($p_visible_bug_data['bugnotes']) && sizeof($p_visible_bug_data['bugnotes']) > 0){
+        $t_bugnote = end($p_visible_bug_data['bugnotes']);
+        $t_last_modified = date( $t_normal_date_format, $t_bugnote->last_modified );
+        $t_message .= "<tr><td bgcolor='#E6E6E6'><b>Nota adicionada: ".$t_last_modified."</b></td></tr>";
 
-	$t_message .= email_format_attribute( $p_visible_bug_data, 'email_reporter' );
+        $t_formatted_bugnote_id = bugnote_format_id( $t_bugnote->id );
+        $t_bugnote_link = string_process_bugnote_link( config_get( 'bugnote_link_tag' ) . $t_bugnote->id, false, false, true );
+
+        if( user_exists( $t_bugnote->reporter_id ) ) {
+          $t_access_level = access_get_project_level( $p_visible_bug_data['email_project_id'] , $t_bugnote->reporter_id );
+          $t_access_level_string = ' (' . get_enum_element( 'access_levels', $t_access_level ) . ') - ';
+        } else {
+          $t_access_level_string = '';
+        }
+        $t_message .= "<tr><td>".$t_bugnote->note."</td></tr>";
+      }// END if(is_array($p_visible_bug_data['bugnotes'])){
+      break;
+    case "email_notification_title_for_status_bug_resolved":
+      $t_message .= "<tr><td><center><img src='http://www.icesi.edu.co/comun/caso_resuelto.jpg'></center></td></tr>";
+      $t_message .= "<tr><td><p>Su caso número <a href='".$p_visible_bug_data['email_bug_view_url']."'>".$p_visible_bug_data['email_bug']."</a> ha sido resuelto ";
+      $t_message .= "por el área encargada. Abajo encontrará la información correspondiente a su caso. Por favor verifique que sus requerimientos se hayan cumplido ";
+      $t_message .= "satisfactoriamente y realice la confirmación del mismo respondiendo este correo electrónico o directamente desde el Sistema de Gestión de ";
+      $t_message .= "Solicitudes ingresando a través del siguiente enlace: <a href='".$p_visible_bug_data['email_bug_view_url']."'>".$p_visible_bug_data['email_bug']."</a> ";
+      $t_message .= "y cambiando el estado a confirmado.</p>";
+      //$t_message .= "<p>Si necesita ayuda puede ver el video tutorial de como <b>confirmar casos</b> en el SGS Icesi.</p>";
+      $t_message .= "</td></tr>";
+      break;
+    case "email_notification_title_for_status_bug_confirmed":
+      $t_message .= "
+      <tr bgcolor='#0061AA'><td><center><img src='http://www.icesi.edu.co/comun/sgs_cabezote.png'></center></td></tr>
+      <tr><td bgcolor='#0061AA'><span style='color:#FFF; font-size:16px; font-family:Verdana, Helvetica, Arial;'><b>Notificación de Caso confirmado</b></span></td></tr>";
+      break;
+    case "email_notification_title_for_status_bug_closed":
+      $t_message .= "
+      <tr bgcolor='#0061AA'><td><center><img src='http://www.icesi.edu.co/comun/sgs_cabezote.png'></center></td></tr>
+      <tr><td bgcolor='#0061AA'><span style='color:#FFF; font-size:16px; font-family:Verdana, Helvetica, Arial;'><b>Notificación de Caso cerrado</b></span></td></tr>";
+      break;
+  }// END switch($p_message_id)
+
+//  $t_message .= " <br>" . $t_email_separator1 . " <br>";
+//  $t_message .= " \n" . $t_email_separator1 . " \n";
+
+  // rjaramillo 2011-06-01
+  // Se documentan las líneas para que no envíe esa información en el mensaje
+ /*	$t_message .= email_format_attribute( $p_visible_bug_data, 'email_reporter' );
 	$t_message .= email_format_attribute( $p_visible_bug_data, 'email_handler' );
 	$t_message .= $t_email_separator1 . " \n";
 	$t_message .= email_format_attribute( $p_visible_bug_data, 'email_project' );
@@ -1339,21 +1433,59 @@ function email_format_bug_message( $p_visible_bug_data ) {
 
 	$t_message .= email_format_attribute( $p_visible_bug_data, 'email_summary' );
 
-	$t_message .= lang_get( 'email_description' ) . ": \n" . $p_visible_bug_data['email_description'] . "\n";
+	$t_message .= lang_get( 'email_description' ) . ": \n" . $p_visible_bug_data['email_description'] . "\n"; */
+    
+   // rjaramillo 2011-06-01
+  // Formateando la Descripción
+  // $t_message .= lang_get( 'email_description' ) . " \n";
+  $t_message .= "<tr><td bgcolor='#E6E6E6'><b>Descripción: Caso # ".$p_visible_bug_data['email_bug']."</b></td></tr>";
 
-	if ( !is_blank( $p_visible_bug_data['email_steps_to_reproduce'] ) ) {
+   // rjaramillo 2011-06-01
+  // Agregando un separador al mensaje
+  // $t_message .= $t_email_separator1 . " \n";
+
+  //$t_message .= $p_visible_bug_data['email_description'] . " \n";
+  $t_message .= "<tr><td>".str_replace("\n","<br>",$p_visible_bug_data['email_description'])."</td></tr>";
+
+  // rjaramillo 2011-06-01
+  // Agregando un separador al mensaje
+  // $t_message .= $t_email_separator1 . " \n";
+  // $t_message .= $t_email_separator1 . " <br>";
+
+  // rjaramillo 2011-06-01
+  // Se documentan las líneas para que no envíe esa información en el mensaje 
+	/* if ( !is_blank( $p_visible_bug_data['email_steps_to_reproduce'] ) ) {
 		$t_message .= "\n" . lang_get( 'email_steps_to_reproduce' ) . ": \n" . $p_visible_bug_data['email_steps_to_reproduce'] . "\n";
 	}
 
 	if ( !is_blank( $p_visible_bug_data['email_additional_information'] ) ) {
 		$t_message .= "\n" . lang_get( 'email_additional_information' ) . ": \n" . $p_visible_bug_data['email_additional_information'] . "\n";
-	}
+	}*/
+  // rjaramillo 2011-06-01
+  // Formateando la Solución para el usuario
+  if($p_visible_bug_data['email_status'] == "resuelto")
+  {
+    if ( !is_blank( $p_visible_bug_data['email_additional_information'] ) ) {
+    // $t_message .= lang_get( 'email_additional_information' ) . " \n";
+      $t_message .= "<tr><td bgcolor='#E6E6E6'><b>Solución</b></td></tr>";
 
-	if( isset( $p_visible_bug_data['relations'] ) ) {
-		if( $p_visible_bug_data['relations'] != '' ) {
+    // rjaramillo 2011-06-01
+    // Agregando un separador al mensaje
+    // $t_message .= $t_email_separator1 . " \n";
+    // $t_message .= $t_email_separator1 . " <br>";
+
+    //$t_message .= $p_visible_bug_data['email_additional_information'] . " \n";
+      $t_message .= "<tr><td>".$p_visible_bug_data['email_additional_information'] . "</td></tr>";
+    }
+  }
+
+  // rjaramillo 2011-06-01
+  // Se documentan las líneas para que no envíe esa información en el mensaje
+  /*if( isset( $p_visible_bug_data['relations'] ) ) {
+     if( $p_visible_bug_data['relations'] != '' ) {
 			$t_message .= $t_email_separator1 . "\n" . str_pad( lang_get( 'bug_relationships' ), 20 ) . str_pad( lang_get( 'id' ), 8 ) . lang_get( 'summary' ) . "\n" . $t_email_separator2 . "\n" . $p_visible_bug_data['relations'];
 		}
-	}
+	}*/
 
 	# Sponsorship
 	if( isset( $p_visible_bug_data['sponsorship_total'] ) && ( $p_visible_bug_data['sponsorship_total'] > 0 ) ) {
@@ -1371,11 +1503,17 @@ function email_format_bug_message( $p_visible_bug_data ) {
 		}
 	}
 
-	$t_message .= $t_email_separator1 . " \n\n";
+	// $t_message .= $t_email_separator1 . " \n\n";
 
 	# format bugnotes
-	foreach( $p_visible_bug_data['bugnotes'] as $t_bugnote ) {
-		$t_last_modified = date( $t_normal_date_format, $t_bugnote->last_modified );
+     // rjaramillo 2011-12-12
+  // Se agrega el if para que solo entre si hay notas en el caso
+  /*
+  if(is_array($p_visible_bug_data['bugnotes']) && sizeof($p_visible_bug_data['bugnotes']) > 0){
+	// foreach( $p_visible_bug_data['bugnotes'] as $t_bugnote ) {
+   // Obteniendo la última posición del arreglo para solo imprimir la última nota
+    $t_bugnote = end($p_visible_bug_data['bugnotes']);		
+    $t_last_modified = date( $t_normal_date_format, $t_bugnote->last_modified );
 
 		$t_formatted_bugnote_id = bugnote_format_id( $t_bugnote->id );
 		$t_bugnote_link = string_process_bugnote_link( config_get( 'bugnote_link_tag' ) . $t_bugnote->id, false, false, true );
@@ -1392,15 +1530,27 @@ function email_format_bug_message( $p_visible_bug_data ) {
 		} else {
 			$t_access_level_string = '';
 		}
+        
+    // rjaramillo 2012-01-04
+    // Se documentan las línea para que no muestre los datos del usuario que agregó la nota
+		//$t_string = ' (' . $t_formatted_bugnote_id . ') ' . user_get_name( $t_bugnote->reporter_id ) . $t_access_level_string . $t_last_modified . "\n" . $t_time_tracking . ' ' . $t_bugnote_link;
+		//$t_message .= $t_email_separator2 . " \n";
+		//$t_message .= $t_string . " \n";
+		//$t_message .= $t_email_separator2 . " \n";
+		//$t_message .= $t_bugnote->note . " \n\n";
+        $t_message .= $t_email_separator2 . " <br>";
+        $t_message .= $t_bugnote->note . " <br>";
+	
 
-		$t_string = ' (' . $t_formatted_bugnote_id . ') ' . user_get_name( $t_bugnote->reporter_id ) . $t_access_level_string . $t_last_modified . "\n" . $t_time_tracking . ' ' . $t_bugnote_link;
-
-		$t_message .= $t_email_separator2 . " \n";
-		$t_message .= $t_string . " \n";
-		$t_message .= $t_email_separator2 . " \n";
-		$t_message .= $t_bugnote->note . " \n\n";
-	}
-
+// rjaramillo 2012-01-04
+// Se agrega la línea para agregar un separador después de la nota
+    $t_message .= $t_email_separator2 . " <br><br>";
+  // }// END foreach( $p_visible_bug_data['bugnotes'] as $t_bugnote )
+  }// END if(is_array($p_visible_bug_data['bugnotes'])){
+*/
+  // rjaramillo 2011-06-01
+  // Se documentan las líneas para que no envíe esa información en el mensaje
+/*
 	# format history
 	if( array_key_exists( 'history', $p_visible_bug_data ) ) {
 		$t_message .= lang_get( 'bug_history' ) . " \n";
@@ -1414,7 +1564,7 @@ function email_format_bug_message( $p_visible_bug_data ) {
 			$t_message .= utf8_str_pad( date( $t_normal_date_format, $t_raw_history_item['date'] ), 17 ) . utf8_str_pad( $t_raw_history_item['username'], 15 ) . utf8_str_pad( $t_localized_item['note'], 25 ) . utf8_str_pad( $t_localized_item['change'], 20 ) . "\n";
 		}
 		$t_message .= $t_email_separator1 . " \n\n";
-	}
+	}*/
 
 	return $t_message;
 }
@@ -1444,12 +1594,6 @@ function email_format_attribute( $p_visible_bug_data, $attribute_id ) {
  * @return array
  */
 function email_build_visible_bug_data( $p_user_id, $p_bug_id, $p_message_id ) {
-	# Override current user with user to construct bug data for.
-	# This is to make sure that APIs that check against current user (e.g. relationship) work correctly.
-	global $g_cache_current_user_id;
-	$t_current_user_id = $g_cache_current_user_id;
-	$g_cache_current_user_id = $p_user_id;
-
 	$t_project_id = bug_get_field( $p_bug_id, 'project_id' );
 	$t_user_access_level = user_get_access_level( $p_user_id, $t_project_id );
 	$t_user_bugnote_order = user_pref_get_pref( $p_user_id, 'bugnote_order' );
@@ -1523,8 +1667,6 @@ function email_build_visible_bug_data( $p_user_id, $p_bug_id, $p_message_id ) {
 	}
 
 	$t_bug_data['relations'] = relationship_get_summary_text( $p_bug_id );
-
-	$g_cache_current_user_id = $t_current_user_id;
 
 	return $t_bug_data;
 }
