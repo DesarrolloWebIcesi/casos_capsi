@@ -1351,7 +1351,7 @@ function email_format_bug_message( $p_visible_bug_data, $p_message_id = null ) {
       $t_message .= "<tr><td><center><img src='http://www.icesi.edu.co/comun/nota_adicionada.jpg'></center></td></tr>";
       $t_message .= "<tr><td><p>Se ha adicionado una nueva nota en el caso número <a href='".$p_visible_bug_data['email_bug_view_url']."'>".$p_visible_bug_data['email_bug']."</a> ";
       $t_message .= "registrado por usted. Abajo encontrará el texto, hora y fecha de la nueva nota. Por favor revísela y en caso de que se requiera una respuesta ";
-      $t_message .= "de su parte, puede enviarla respondiendo este correo electrónico o directamente desde el Sistema de Gestión de Solicitudes ingresando a ";
+      $t_message .= "de su parte, puede enviarla respondiendo este correo electrónico o directamente desde el Sistema de Atención Psicosocial ingresando a ";
       $t_message .= "través del siguiente enlace: <a href='".$p_visible_bug_data['email_bug_view_url']."'>".$p_visible_bug_data['email_bug']."</a></p>";
       //$t_message .= "<p>Si necesita ayuda puede ver el video tutorial de como adicionar notas a los casos en el SGS Icesi.</p>";
       $t_message .= "</td></tr>";
@@ -1376,8 +1376,8 @@ function email_format_bug_message( $p_visible_bug_data, $p_message_id = null ) {
       $t_message .= "<tr><td><center><img src='http://www.icesi.edu.co/comun/caso_resuelto.jpg'></center></td></tr>";
       $t_message .= "<tr><td><p>Su caso número <a href='".$p_visible_bug_data['email_bug_view_url']."'>".$p_visible_bug_data['email_bug']."</a> ha sido resuelto ";
       $t_message .= "por el área encargada. Abajo encontrará la información correspondiente a su caso. Por favor verifique que sus requerimientos se hayan cumplido ";
-      $t_message .= "satisfactoriamente y realice la confirmación del mismo respondiendo este correo electrónico o directamente desde el Sistema de Gestión de ";
-      $t_message .= "Solicitudes ingresando a través del siguiente enlace: <a href='".$p_visible_bug_data['email_bug_view_url']."'>".$p_visible_bug_data['email_bug']."</a> ";
+      $t_message .= "satisfactoriamente y realice la confirmación del mismo respondiendo este correo electrónico o directamente desde el Sistema de Atención";
+      $t_message .= "Psicosocial ingresando a través del siguiente enlace: <a href='".$p_visible_bug_data['email_bug_view_url']."'>".$p_visible_bug_data['email_bug']."</a> ";
       $t_message .= "y cambiando el estado a confirmado.</p>";
       //$t_message .= "<p>Si necesita ayuda puede ver el video tutorial de como <b>confirmar casos</b> en el SGS Icesi.</p>";
       $t_message .= "</td></tr>";
