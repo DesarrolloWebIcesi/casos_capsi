@@ -60,15 +60,15 @@ $g_allow_signup = OFF;
 // No permitir resetear la contraseña
 $g_send_reset_password = OFF;
 // Correo del administrador
-$g_administrator_email = ;
+$g_administrator_email = 'capsi@correo.icesi.edu.co';
 // Correo del webmaster
-$g_webmaster_email = ;
+$g_webmaster_email =  'capsi@correo.icesi.edu.co';
 // Correo remitente
-$g_from_email = ;
+$g_from_email = 'capsi@correo.icesi.edu.co';
 // Nombre remitente
-$g_from_name = ;
+$g_from_name = 'Sistema de Atención  Psicosocial';
 // Correo para mensajes rebotados
-$g_return_path_email = ;
+$g_return_path_email = 'capsi@correo.icesi.edu.co';
 
 // Notificaciones por correo para categorías de usuario
 $g_default_notify_flags	= array('reporter'	=> ON,
@@ -104,11 +104,11 @@ $g_default_language = 'spanish';
 // Arreglo de idiomas para elegir
 $g_language_choices_arr    = array('spanish','english');
 // Título de la ventana
-$g_window_title = ;
+$g_window_title = 'Casos del Consultorio Atención Psicosocial - Universidad Icesi';
 // Logo
 $g_logo_image = 'images/logo_icesi.png';
 // Url donde redirecciona el logo
-$g_logo_url = ;
+$g_logo_url = 'http://www.icesi.edu.co';
 // NO requerir reautenticación para las opciones administrativas
 $g_reauthentication = OFF;
 // La opción de Documentos está obsoleta y se incluirá en un plugin en el futuro
@@ -140,7 +140,7 @@ $g_show_avatar = OFF;
 // Formato de fecha corto
 $g_short_date_format = 'd-M-Y';
 // Formato de fecha normal
-$g_normal_date_format = 'd-M-y H:i';
+$g_normal_date_format = 'd-M-Y H:i';
 // Formato de fecha completo
 $g_complete_date_format = 'd-M-Y h:i A';
 // Zona horaria por defecto
@@ -189,11 +189,17 @@ $g_html_valid_tags_single_line = 'i, b, u, em';
 $g_max_dropdown_length = 0;
 
 // Servidor LDAP
-$g_ldap_server = ;
+$g_ldap_server = 'ldap://iden.icesi.edu.co/';
 // Puerto LDAP
 $g_ldap_port = 389;
 $g_ldap_root_dn	= '';
-$g_ldap_root_dn_array	= 
+$g_ldap_root_dn_array	= array(
+ 'cn=colaboradores,cn=users,dc=icesi,dc=edu,dc=co',
+ 'cn=temporales,cn=users,dc=icesi,dc=edu,dc=co',
+ 'cn=pregrado,cn=users,dc=icesi,dc=edu,dc=co',
+ 'cn=postgrado,cn=users,dc=icesi,dc=edu,dc=co',
+ 'cn=profesores,cn=users,dc=icesi,dc=edu,dc=co'
+ );
 // Organización LDAP
 $g_ldap_organization = '';
 // Campo UID
@@ -201,9 +207,9 @@ $g_ldap_uid_field = 'uid';
 // Nombre real
 $g_ldap_realname_field = 'givenname';
 // Cadena LDAP
-$g_ldap_bind_dn = ;
+$g_ldap_bind_dn = 'cn=busqueda,cn=dsistemas,cn=users,dc=icesi,dc=edu,dc=co';
 // Password LDAP
-$g_ldap_bind_passwd = ;
+$g_ldap_bind_passwd = 'lK3Bs0o';
 // Uso del email de LDAP
 $g_use_ldap_email = ON;
 // Estado en el que los casos son de solo lectura
@@ -217,7 +223,7 @@ $g_status_enum_workflow[ACKNOWLEDGED] ='80:resolved,50:assigned';
 $g_status_enum_workflow[ASSIGNED] ='80:resolved,30:acknowledged,20:feedback';
 $g_status_enum_workflow[RESOLVED] ='40:confirmed,50:assigned';
 $g_status_enum_workflow[CONFIRMED] ='90:closed';
-$g_status_enum_workflow[CLOSED] ='';
+//$g_status_enum_workflow[CLOSED] ='';
 // Tamaño máximo de archivos a previsualizar
 $g_preview_attachments_inline_max_size = 256 * 1024;
 // Extensiones de archivos de texto a previsualizar
@@ -433,4 +439,5 @@ $g_stop_on_errors = OFF;
 
 // Deshabilita la protección contra ataques Cross-Site
 $g_form_security_validation = OFF;
+	
 ?>

@@ -50,12 +50,19 @@
 	}
 
 	$f_new_status = gpc_get_int( 'new_status' );
+	//echo "Estado"." ".$f_new_status;
 	$f_reopen_flag = gpc_get_int( 'reopen_flag', OFF );
 
 	$t_reopen = config_get( 'bug_reopen_status', null, null, $t_bug->project_id );
 	$t_resolved = config_get( 'bug_resolved_status_threshold', null, null, $t_bug->project_id );
 	$t_closed = config_get( 'bug_closed_status_threshold', null, null, $t_bug->project_id );
 	$t_current_user_id = auth_get_current_user_id();
+	/**
+	 * cdcriollo - Christian David Criollo
+	 * 2015-01-27
+	 * Variable booleana para ocultar el campo due_date cuando se cambia de estado nuevo a asignado
+	 */
+	$show_duedate= false;
 
 	# Ensure user has proper access level before proceeding
 	if( $f_new_status == $t_reopen && $f_reopen_flag ) {
@@ -128,9 +135,19 @@
 <?php
 $t_current_resolution = $t_bug->resolution;
 $t_bug_is_open = in_array( $t_current_resolution, array( config_get( 'default_bug_resolution' ), config_get( 'bug_reopen_resolution' ) ) );
-if ( ( $t_resolved <= $f_new_status ) && ( ( $t_closed > $f_new_status ) || ( $t_bug_is_open ) ) ) { ?>
+
+/**
+ * cdcriollo - Christian David Criollo
+ * 2015-01-27
+ * Filtro agregado para ocultar los campos Resolution, Duplicate ID cuando se cambia de estado asignado a resuelto
+ */
+
+if ( ( $t_resolved >= $f_new_status ) &&  ( $t_closed < $f_new_status )) {
+
+ if ( ( $t_resolved <= $f_new_status ) && ( ( $t_closed > $f_new_status ) || ( $t_bug_is_open ) ) ) { ?>
 <!-- Resolution -->
 <!-- iljojoa comentarlo para que no aparezca, verificar que se envie el campo con  -->
+
 <tr <?php echo helper_alternate_class() ?>>
 	<td class="category">
 		<?php echo lang_get( 'resolution' ) ?>
@@ -157,7 +174,8 @@ if ( ( $t_resolved <= $f_new_status ) && ( $t_closed > $f_new_status ) ) { ?>
 		<input type="text" name="duplicate_id" maxlength="10" />
 	</td>
 </tr>
-<?php } ?>
+ <?php } ?>
+<?php } // fin filtro ?>
 
 <?php
 if ( access_has_bug_level( config_get( 'update_bug_assign_threshold', config_get( 'update_bug_threshold' ) ), $f_bug_id ) ) {
@@ -168,6 +186,14 @@ if ( access_has_bug_level( config_get( 'update_bug_assign_threshold', config_get
 	}
 ?>
 <!-- Assigned To -->
+<!-- 
+	/**
+	 * cdcriollo - Christian David Criollo
+	 * 2015-01-27
+	 * Agregado para ocultar el campo asignado a  cuando se cambia de estado asignado a resuelto
+	 */ 
+ -->
+<?php if ($f_new_status == 50) {?>
 <tr <?php echo helper_alternate_class() ?>>
 	<td class="category">
 		<?php echo lang_get( 'assigned_to' ) ?>
@@ -179,15 +205,31 @@ if ( access_has_bug_level( config_get( 'update_bug_assign_threshold', config_get
 		</select>
 	</td>
 </tr>
+ <?php }?>
 <?php } ?>
+
+<?php 
+/**
+ * cdcriollo - Christian David Criollo
+ * 2015-01-27
+ * variable booleana agregada para ocultar el campo due_date cuando se cambia de estado nuevo a asignado 
+ */
+?>
+ 
+<?php if ($show_duedate ) {?>
 
 <?php if ( $t_can_update_due_date ) {
 	$t_date_to_display = '';
 	if ( !date_is_null( $t_bug->due_date ) ) {
 			$t_date_to_display = date( config_get( 'calendar_date_format' ), $t_bug->due_date );
 	}
+}
 ?>
+
+
 <!-- Due date -->
+
+
 <tr <?php echo helper_alternate_class() ?>>
 	<td class="category">
 		<?php print_documentation_link( 'due_date' ) ?>
@@ -218,6 +260,14 @@ if ( $t_closed == $f_new_status ) {
 }
 
 $t_related_custom_field_ids = custom_field_get_linked_ids( $t_bug->project_id );
+
+/**
+ * cdcriollo - Christian David Criollo
+ * 2015-01-27
+ * Filtro agregado para ocultar los campos personalizados cuando se cambia de estado resuelto a confirmado o confirmado a cerrado
+ */
+
+if ( $f_new_status < $t_closed || $f_new_status < 40) {
 
 foreach( $t_related_custom_field_ids as $t_id ) {
 	$t_def = custom_field_get_definition( $t_id );
@@ -251,12 +301,14 @@ foreach( $t_related_custom_field_ids as $t_id ) {
 			<?php echo lang_get_defaulted( $t_def['name'] ) ?>
 		</td>
 		<td>
-			<?php print_custom_field_value( $t_def, $t_id, $f_bug_id );			?>
+			<?php print_custom_field_value( $t_def, $t_id, $f_bug_id );	?>
 		</td>
 	</tr>
 <?php
 	} # custom_field_has_read_access( $t_id, $f_bug_id ) )
-} # foreach( $t_related_custom_field_ids as $t_id )
+ } # foreach( $t_related_custom_field_ids as $t_id )
+}// fin filtro esconder campos personalizados
+	
 ?>
 
 <?php
@@ -369,8 +421,16 @@ if ( ( $f_new_status >= $t_resolved ) && ( $t_closed > $f_new_status ) ) { ?>
 </div>
 
 <?php
-if ( $t_can_update_due_date ) {
-	date_finish_calendar( 'due_date', 'trigger');
+/**
+ * cdcriollo - Christian David Criollo
+ * 2015-01-27
+ * Filtro agregado para ocultar el mensaje que se activa al actualizar la fecha limite
+ */
+
+if($show_duedate){
+	if ( $t_can_update_due_date ) {
+		date_finish_calendar( 'due_date', 'trigger');
+	}
 }
 
 echo '<br />';
