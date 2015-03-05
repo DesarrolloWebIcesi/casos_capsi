@@ -285,10 +285,31 @@ function gpc_get_string_array( $p_var_name, $p_default = null ) {
 		error_parameters( $p_var_name );
 		trigger_error( ERROR_GPC_ARRAY_EXPECTED, ERROR );
 	}
+	
+	/**
+	 Autor:Christian David Criollo Lopez
+	 Fecha: Febrero-16-2015
+	 Descripción:se corrige error presentado al momento de reportar un caso en el archivo home/siesi/mantis/capsi/core/gpc_api.php line 290 el cual fue fixeado en la versión 1.2.19
+	 Segun caso de soporte 175487 SGS
+	 **/
 
-	$t_array = array();
+	/* $t_array = array();
 	foreach( $t_result as $key => $val ) {
 		$t_array[$key] = str_replace( "\0", "", $val );
+	}
+	return $t_array;*/
+	
+	//Nuevo codigo versión 1.2.19 que corrige el error descrito.
+	if( !is_array( $t_result ) ) {
+		return $t_result;
+	}
+	$t_array = array();
+	foreach( $t_result as $t_key => $t_value ) {
+		if( $t_value === null ) {
+			$t_array[$t_key] = null;
+		} else {
+			$t_array[$t_key] = str_replace( "\0", '', $t_value );
+		}
 	}
 	return $t_array;
 }
