@@ -223,7 +223,7 @@ $g_status_enum_workflow[ACKNOWLEDGED] ='80:resolved,50:assigned';
 $g_status_enum_workflow[ASSIGNED] ='80:resolved,30:acknowledged,20:feedback';
 $g_status_enum_workflow[RESOLVED] ='40:confirmed,50:assigned';
 $g_status_enum_workflow[CONFIRMED] ='90:closed';
-//$g_status_enum_workflow[CLOSED] ='';
+$g_status_enum_workflow[CLOSED] ='';
 // Tamaño máximo de archivos a previsualizar
 $g_preview_attachments_inline_max_size = 256 * 1024;
 // Extensiones de archivos de texto a previsualizar
