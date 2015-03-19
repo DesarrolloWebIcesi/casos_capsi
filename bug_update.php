@@ -161,6 +161,19 @@
 		}
 
 		# Attempt to set the new custom field value
+		/**
+		 * iljojoa - 20150129
+		 * Validar el campo terminación proceso con id = 46
+		 * para que no sea inferior a la fecha de inicio proceso con id = 40
+		 */
+		 
+		if ( $t_id == 46){
+			$fecha_ini = strtotime($_POST['custom_field_40']);
+			$fecha_fin = strtotime($_POST['custom_field_46']);
+			if($fecha_ini > $fecha_fin){
+				trigger_error( ERROR_CUSTOM_FIELD_DATE, ERROR );
+				}
+		}
 		if ( !custom_field_set_value( $t_id, $f_bug_id, $t_new_custom_field_value ) ) {
 			error_parameters( lang_get_defaulted( custom_field_get_field( $t_id, 'name' ) ) );
 			trigger_error( ERROR_CUSTOM_FIELD_INVALID_VALUE, ERROR );
