@@ -356,6 +356,7 @@ function date_finish_calendar($p_field_name, $p_button_name, $p_show_time = true
 		echo "buttonImageOnly: true,\n";
 		echo "changeMonth: true, \n" ;
 		echo "changeYear: true, \n";
+		echo "yearRange: '-115:+0', \n";
 		echo "buttonImage: '".config_get ( 'short_path' )."images/calendar-img.gif' \n";
 		echo "}\n";
 		echo ");\n";
