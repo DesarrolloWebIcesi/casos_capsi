@@ -125,6 +125,20 @@
 	if ( $t_bug_data->status == $t_closed ) {
 		$t_custom_status_label = "closed";
 	}
+	
+	/*
+	 * Autor: Christian David Criollo
+	 * Fecha: 19 Marzo 2015
+	 * Descripción: se adiciono la validación para que cuando se seleccione el estado asignado desde la vista de editar caso, si no se ha seleccionado
+	 * un usuario para asignar el caso se dispare un error que le informe al usuario que debe diligenciar el campo asignado a.
+	 */
+	
+	if ($f_new_status == 50) {
+	    if($t_bug_data->handler_id == "" || $t_bug_data->handler_id == null ){
+	        error_parameters( 'Asignado a');
+	        trigger_error( ERROR_EMPTY_FIELD, ERROR);
+	    }
+	}
 
 	$t_related_custom_field_ids = custom_field_get_linked_ids( $t_bug_data->project_id );
 	foreach( $t_related_custom_field_ids as $t_id ) {
