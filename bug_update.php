@@ -186,7 +186,8 @@
 			$fecha_fin = strtotime($_POST['custom_field_46']);
 			if($fecha_ini > $fecha_fin){
 				trigger_error( ERROR_CUSTOM_FIELD_DATE, ERROR );
-				}
+				$f_update_mode= true;
+		    }
 		}
 		if ( !custom_field_set_value( $t_id, $f_bug_id, $t_new_custom_field_value ) ) {
 			error_parameters( lang_get_defaulted( custom_field_get_field( $t_id, 'name' ) ) );
