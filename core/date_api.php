@@ -211,13 +211,14 @@ function print_date_selection_set($p_name, $p_format, $p_date = 0, $p_default_di
 	// if( $p_date != 0 ) {
 	if (ON == config_get ( 'use_date_picker_javascript' ) && "/return_dynamic_filters.php" != $_SERVER ["SCRIPT_NAME"]) {
 		$p_date = is_numeric ( $p_date ) ? $p_date : time ();
-		//$t_date = preg_split ( '/-/', date ( 'Y-m-d', $p_date ), - 1, PREG_SPLIT_NO_EMPTY );
+		
 		/**
 		 * cdcriollo - Christian David Criollo
 		 * 2015-01-30
 		 * Se cambio el formato de fecha a (d-M-Y) del calendario y se adiciono el atributo readonly al campo de texto
 		 */
-		$t_date = preg_split ( '/-/', date ( 'd-M-Y', $p_date ), - 1, PREG_SPLIT_NO_EMPTY );
+		//$t_date = preg_split ( '/-/', date ( 'Y-m-d', $p_date ), - 1, PREG_SPLIT_NO_EMPTY );
+		$t_date = preg_split ( '/-/', date ( 'd-M-Y', $p_date), - 1, PREG_SPLIT_NO_EMPTY );
 		$t_date_to_display = $t_date ? $t_date [0] . "-" . $t_date [1] . "-" . $t_date [2] : '';
 		print "<input " . helper_get_tab_index () . " type=\"text\" size=\"14\" id=\"$p_name\" name=\"$p_name\" size=\"20\" readonly maxlength=\"12\" value=\"" . $t_date_to_display . "\" />";
 		date_print_calendar ( "trigger" . $p_name );
@@ -239,6 +240,7 @@ function print_date_selection_set($p_name, $p_format, $p_date = 0, $p_default_di
 		/*
 		 * if( strcmp( $t_char, "m" ) == 0 ) { echo "<select ", helper_get_tab_index(), " name=\"" . $p_name . "_month\"$t_disable>"; echo $t_blank_line; print_month_option_list( $t_date[1] ); echo "</select>\n";
 		 */
+		
 		$t_disable = '';
 		if ($p_default_disable == true) {
 			$t_disable = ' disabled="disabled"';
@@ -301,12 +303,18 @@ function date_print_calendar($p_button_name = 'trigger') {
 	if ((ON == config_get ( 'dhtml_filters' )) && (ON == config_get ( 'use_javascript' ))) {
 		$t_icon_path = config_get ( 'icon_path' );
 		$t_cal_icon = $t_icon_path . "calendar-img.gif";
-		echo "<input type=\"image\" class=\"button\" id=\"" . $p_button_name . "\" src=\"" . $t_cal_icon . "\" />";
+		//echo "<input type=\"image\" class=\"button\" id=\"" . $p_button_name . "\" src=\"" . $t_cal_icon . "\" />";
 		if (! $g_calendar_already_imported) {
-			echo "<style type=\"text/css\">@import url(" . config_get ( 'short_path' ) . "css/calendar-blue.css);</style>\n";
-			html_javascript_link ( 'jscalendar/calendar.js' );
-			html_javascript_link ( 'jscalendar/lang/calendar-es.js' );
-			html_javascript_link ( 'jscalendar/calendar-setup.js' );
+			//echo "<style type=\"text/css\">@import url(" . config_get ( 'short_path' ) . "css/calendar-blue.css);</style>\n";
+			/*
+			 Autor; Andres  Hinojosa, Christian Criollo 
+			 Fecha: 11 Marzo 2015
+			 Descripción: Se hace el llamado a las librerias del calendario de jqueryui
+			*/
+			echo "<style type=\"text/css\">@import url(" . config_get ( 'short_path' ) . "css/jquery-ui-1.10.4.custom.css);</style>\n";
+			html_javascript_link ( 'jscalendar/jquery-1.10.2.js' );
+			html_javascript_link ( 'jscalendar/jquery-ui-1.10.4.custom.js' );
+			html_javascript_link ( 'jscalendar/jquery.ui.datepicker-es.js' );
 			$g_calendar_already_imported = true;
 		}
 		/*
@@ -331,17 +339,25 @@ function date_finish_calendar($p_field_name, $p_button_name, $p_show_time = true
 	if ((ON == config_get ( 'dhtml_filters' )) && (ON == config_get ( 'use_javascript' ))) {
 		// $t_format = config_get( 'calendar_js_date_format' );
 		$t_format = $p_show_time ? config_get ( 'calendar_js_date_format' ) : config_get ( 'calendar_js_date_no_time_format' );
+		/*
+			 Autor; Andres  Hinojosa, Christian Criollo 
+			 Fecha: 11 Marzo 2015
+			 Descripción: Se implementa el calendario de jqueryui
+	    */
 		echo "<script type=\"text/javascript\">\n";
-		echo "Calendar.setup (\n";
+		echo "$(\" #".$p_field_name."\").datepicker(\n";
 		echo "{\n";
 		/*
 		 * echo "inputField 	: \"" . $p_field_name . "\",\n"; echo "timeFormat : \"24\",\n"; echo "showsTime : true,\n"; echo "ifFormat 	: \"" . $t_format . "\", \n"; echo "button		: \"" . $p_button_name . "\"\n";
 		 */
-		echo "inputField : \"" . $p_field_name . "\",\n";
-		echo "timeFormat : \"24\",\n";
-		echo "showsTime : " . ($p_show_time ? "true" : "false") . ",\n";
-		echo "ifFormat : \"" . $t_format . "\", \n";
-		echo "button : \"" . $p_button_name . "\"\n";
+		$date= date('d-M-Y');
+		echo "showOn: 'button',\n";
+		echo "dateFormat: 'dd-mm-yy',\n";
+		echo "buttonImageOnly: true,\n";
+		echo "changeMonth: true, \n" ;
+		echo "changeYear: true, \n";
+		echo "yearRange: '-115:+0', \n";
+		echo "buttonImage: '".config_get ( 'short_path' )."images/calendar-img.gif' \n";
 		echo "}\n";
 		echo ");\n";
 		echo "</script>\n";
