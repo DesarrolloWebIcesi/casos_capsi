@@ -1090,7 +1090,13 @@ function custom_field_validate( $p_field_id, $p_value ) {
 		case CUSTOM_FIELD_TYPE_DATE:
 			# gpc_get_cf for date returns the value from strftime
 			# Either false (php >= 5.1) or -1 (php < 5.1) for failure
-			$t_valid &= ( $p_value == null ) || ( ( $p_value !== false ) && ( $p_value > 0 ) );
+			
+			/*
+			 Autor; Andres  Hinojosa, Christian Criollo 
+			 Fecha: 11 Marzo 2015
+			 Descripción: Se modifico la validación para que aceptara fechas menores a 31-diciembre-1969
+			*/
+			$t_valid &= ( $p_value == null ) || ( ( $p_value !== false ) /*&& ( $p_value > 0 )*/ );
 			break;
 		case CUSTOM_FIELD_TYPE_CHECKBOX:
 		case CUSTOM_FIELD_TYPE_MULTILIST:
@@ -1287,10 +1293,27 @@ function custom_field_set_value( $p_field_id, $p_bug_id, $p_value, $p_log_insert
 		$row = db_fetch_array( $result );
 		history_log_event_direct( $c_bug_id, $t_name, custom_field_database_to_value( $row['value'], $t_type ), $p_value );
 	} else {
+	
+	/*
+	 Autor; Andres  Hinojosa, Christian Criollo 
+	 Fecha: 11 Marzo 2015
+	 Descripción: Para los campos tipo fecha se coloca la fecha actual por default al momento de crear el caso
+	*/
+		$field_id=db_param();
+		$bug_id=db_param();
+		$value_tot=db_param();
+		$t_type = custom_field_get_field( $p_field_id, 'type' );
+		
+		if($t_type==8):
+			$date_actual=date("d-m-Y");
+			$milisegundos_actual=strtotime($date_actual);
+			$value_tot=$milisegundos_actual;
+		endif;
+		
 		$query = "INSERT INTO $t_custom_field_string_table
 						( field_id, bug_id, value )
 					  VALUES
-						( " . db_param() . ', ' . db_param() . ', ' . db_param() . ')';
+						( " . $field_id . ', ' . $bug_id . ', ' . $value_tot. ')';
 		db_query_bound( $query, Array( $c_field_id, $c_bug_id, custom_field_value_to_database( $p_value, $t_type ) ) );
 		# Don't log history events for new bug reports or on other special occasions
 		if ( $p_log_insert ) {

@@ -125,6 +125,20 @@
 	if ( $t_bug_data->status == $t_closed ) {
 		$t_custom_status_label = "closed";
 	}
+	
+	/*
+	 * Autor: Christian David Criollo
+	 * Fecha: 19 Marzo 2015
+	 * Descripción: se adiciono la validación para que cuando se seleccione el estado asignado desde la vista de editar caso, si no se ha seleccionado
+	 * un usuario para asignar el caso se dispare un error que le informe al usuario que debe diligenciar el campo asignado a.
+	 */
+	
+	if ($f_new_status == 50) {
+	    if($t_bug_data->handler_id == "" || $t_bug_data->handler_id == null ){
+	        error_parameters( 'Asignado a');
+	        trigger_error( ERROR_EMPTY_FIELD, ERROR);
+	    }
+	}
 
 	$t_related_custom_field_ids = custom_field_get_linked_ids( $t_bug_data->project_id );
 	foreach( $t_related_custom_field_ids as $t_id ) {
@@ -161,6 +175,20 @@
 		}
 
 		# Attempt to set the new custom field value
+		/**
+		 * iljojoa - 20150129
+		 * Validar el campo terminaciÃ³n proceso con id = 46
+		 * para que no sea inferior a la fecha de inicio proceso con id = 40
+		 */
+		 
+		if ( $t_id == 46){
+			$fecha_ini = strtotime($_POST['custom_field_40']);
+			$fecha_fin = strtotime($_POST['custom_field_46']);
+			if($fecha_ini > $fecha_fin){
+				trigger_error( ERROR_CUSTOM_FIELD_DATE, ERROR );
+				$f_update_mode= true;
+		    }
+		}
 		if ( !custom_field_set_value( $t_id, $f_bug_id, $t_new_custom_field_value ) ) {
 			error_parameters( lang_get_defaulted( custom_field_get_field( $t_id, 'name' ) ) );
 			trigger_error( ERROR_CUSTOM_FIELD_INVALID_VALUE, ERROR );
